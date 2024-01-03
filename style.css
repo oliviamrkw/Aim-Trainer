@@ -15,7 +15,6 @@ body {
 }
 
 .cursor_follower {
-  transition: transform .4s;
   width: 6px;
   height: 6px;
 }
