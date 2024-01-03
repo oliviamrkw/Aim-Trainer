@@ -8,11 +8,11 @@ canvas.height = ty;
 var mousex = 0;
 var mousey = 0;
 
-var score = 0;
-var time = 0;
+var score;
+var time;
+var times = [];
 
-document.getElementById('scoreValue').textContent = 0;
-document.getElementById('timeValue').textContent = 0;
+var bal = [];
 
 addEventListener("mousemove", function() {
   mousex = event.clientX;
@@ -20,33 +20,30 @@ addEventListener("mousemove", function() {
 });
 
 addEventListener('click', function(event) {
+  const clickX = event.clientX;
+  const clickY = event.clientY;
+  
   for(var i = 0; i < bal.length; i++) {
-    if(
-      mousex > bal[i].x - bal[i].radius &&
-      mousex < bal[i].x + bal[i].radius &&
-      mousey > bal[i].y - bal[i].radius &&
-      mousey < bal[i].y + bal[i].radius &&
-      bal[i].radius < 70
-    ){
-      bal[i].radius = 0;
+    const distance = Math.sqrt((clickX - bal[i].x) ** 2 + (clickY - bal[i].y) ** 2);
+    if (distance <= bal[i].radius && !bal[i].shrinking){
+      bal[i].shrink();
       score++;
-      console.log(score);
       document.getElementById('scoreValue').textContent = score;
       break;
     }
   }
 });
 
-var grav = 0.99;
+var grav = 0.95;
 c.strokeWidth = 5;
 function randomColor() {
   return (
     "rgb(" +
-    Math.round(Math.random() * 245) +
+    Math.round(Math.random() * 240) +
     "," +
-    Math.round(Math.random() * 245) +
+    Math.round(Math.random() * 240) +
     "," +
-    Math.round(Math.random() * 245) +
+    Math.round(Math.random() * 240) +
     ")"
   );
 }
@@ -68,12 +65,19 @@ function Ball() {
       c.fill();
     }
   };
-}
-
-var bal = [];
-for (var i=0; i<10; i++){
-    bal.push(new Ball());
-}
+  this.shrinking = false;
+  this.shrink = function() {
+    this.shrinking = true;
+    const shrinkInterval = setInterval(() => {
+      this.radius -= 1;
+      if (this.radius <= 0) {
+        this.radius = 0;
+        this.shrinking = false;
+        clearInterval(shrinkInterval);
+        }
+      }, 1);
+    };
+  }
 
 function animate() {    
   if (tx != window.innerWidth || ty != window.innerHeight) {
@@ -101,6 +105,8 @@ function animate() {
     }
     if (score == 10){
       stopTimer();
+      retryButton.style.display = 'block';
+      break;
     }
   }
 }
@@ -115,11 +121,10 @@ function startTimer(){
 }
 
 function stopTimer(){
+  times.push(parseFloat(document.getElementById('timeValue').textContent));
+  console.log(times)
   clearInterval(interval);
 }
-
-animate();
-startTimer();
 
 const root = document.querySelector('html')
 
@@ -133,4 +138,38 @@ root.addEventListener('mousemove', (e) => {
 
 function setPosition(element, e) {
   element.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`
+}
+
+var startButton = document.getElementById('startButton');
+startButton.addEventListener('click', function() {
+  startGame();
+});
+
+var retryButton = document.getElementById('retryButton');
+retryButton.addEventListener('click', function() {
+  startGame();
+});
+
+function startGame() {
+  score = 0;
+  document.getElementById('scoreValue').textContent = 0;
+  document.getElementById('timeValue').textContent = 0;
+
+  bal = [];
+
+  for (var i=0; i<10; i++){
+    bal.push(new Ball());
+  }
+  
+  animate();
+  startTimer();
+
+  startButton.style.display = 'none';
+  retryButton.style.display = 'none';
+  
+  if (times.length > 0) {
+    document.getElementById('highscore').textContent = Math.min.apply(null, times);
+  } else {
+    document.getElementById('highscore').textContent = 'none';
+  }
 }
