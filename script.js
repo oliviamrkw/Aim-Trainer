@@ -34,7 +34,7 @@ addEventListener('click', function(event) {
   }
 });
 
-var grav = 0.95;
+var grav = 0.99;
 c.strokeWidth = 5;
 function randomColor() {
   return (
@@ -57,14 +57,25 @@ function Ball() {
   this.dy = Math.random() * 2;
   this.dx = Math.round((Math.random() - 0.5) * 10);
   this.vel = Math.random() /5;
+  
+  const maxSpeed = 7;
   this.update = function() {
     if (this.radius > 0) {
       c.beginPath();
       c.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
       c.fillStyle = this.color;
       c.fill();
+      
+      if (Math.abs(this.dy) > maxSpeed) {
+        this.dy = maxSpeed * Math.sign(this.dy);
+      }
+
+      if (Math.abs(this.dx) > maxSpeed) {
+        this.dx = maxSpeed * Math.sign(this.dx);
+      }
     }
   };
+  
   this.shrinking = false;
   this.shrink = function() {
     this.shrinking = true;
@@ -77,6 +88,7 @@ function Ball() {
         }
       }, 1);
     };
+  
   }
 
 function animate() {    
@@ -122,8 +134,8 @@ function startTimer(){
 
 function stopTimer(){
   times.push(parseFloat(document.getElementById('timeValue').textContent));
-  console.log(times)
   clearInterval(interval);
+  document.getElementById('highscore').textContent = Math.min.apply(null, times);
 }
 
 const root = document.querySelector('html')
@@ -167,9 +179,7 @@ function startGame() {
   startButton.style.display = 'none';
   retryButton.style.display = 'none';
   
-  if (times.length > 0) {
-    document.getElementById('highscore').textContent = Math.min.apply(null, times);
-  } else {
+  if (times.length == 0) {
     document.getElementById('highscore').textContent = 'none';
   }
 }
